@@ -40,8 +40,6 @@ function nowApi () {
     console.log('WARNING: Cannot find NOW_TOKEN environment variable')
   }
 
-  console.log("teamId", teamId)
-
   const now = Now(authToken, teamId)
 
   function wait (seconds) {
@@ -159,7 +157,7 @@ function nowApi () {
       // we do not need dev dependencies in the deployed server
       delete params.package.devDependencies
 
-      // KQ START
+      // Change params format for now API v2
       params.public = false
       params.files = []
       params.name= params.package.name
@@ -175,7 +173,6 @@ function nowApi () {
           data: sources[i]
         })
       })
-      // KQ END
 
       return now.createDeployment(params)
         .then(r => {
