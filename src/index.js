@@ -40,7 +40,7 @@ function nowApi () {
     console.log('WARNING: Cannot find NOW_TOKEN environment variable')
   }
 
-  const now = Now(authToken, teamId)
+  const now = new Now(authToken, teamId)
 
   function wait (seconds) {
     return new Promise((resolve, reject) => {
@@ -141,8 +141,8 @@ function nowApi () {
       debug('package.json filename is', packageJsonFilename)
       debug('in folder', packageJsonFolder)
 
-      // TODO make sure all files exist
-      // console.log()
+      // Make sure all files exist
+      filenames = filenames.filter(f => fs.existsSync(f))
 
       const sources = R.map(name => fs.readFileSync(name, 'utf8'))(filenames)
       const names = R.map(filename => {
