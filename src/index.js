@@ -144,6 +144,11 @@ function nowApi () {
       // Make sure all files exist
       filenames = filenames.filter(f => fs.existsSync(f))
 
+      // Specific: add .env if exist
+      if (fs.existsSync('.env')) {
+        filenames.push('.env')
+      }
+
       const sources = R.map(name => fs.readFileSync(name, 'utf8'))(filenames)
       const names = R.map(filename => {
         return path.relative(packageJsonFolder, filename)
