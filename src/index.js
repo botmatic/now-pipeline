@@ -70,6 +70,7 @@ function nowApi () {
 
     return checkDeploy(id)
       .then(r => {
+        console.log("checkDeploy", r)
 
         if (r.state === 'READY') {
           return r
@@ -181,6 +182,7 @@ function nowApi () {
 
       return now.createDeployment(params)
         .then(r => {
+          console.log("Create deployment", r)
 
           // TODO make an option
           const maxWaitSeconds = 60 * 10
