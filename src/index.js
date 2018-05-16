@@ -40,7 +40,9 @@ function nowApi () {
     console.log('WARNING: Cannot find NOW_TOKEN environment variable')
   }
 
-  const now = new Now(authToken, teamId)
+  console.log("teamId", teamId)
+
+  const now = Now(authToken, teamId)
 
   function wait (seconds) {
     return new Promise((resolve, reject) => {
@@ -67,9 +69,10 @@ function nowApi () {
   function waitUntilDeploymentReady (id, secondsRemaining) {
     la(is.number(secondsRemaining), 'wrong waiting limit', secondsRemaining)
     const sleepSeconds = 5
+
     return checkDeploy(id)
       .then(r => {
-        console.log(r.state, r.host, 'limit', secondsRemaining, 'seconds')
+
         if (r.state === 'READY') {
           return r
         }
@@ -140,17 +143,10 @@ function nowApi () {
       debug('package.json filename is', packageJsonFilename)
       debug('in folder', packageJsonFolder)
 
-      var existedFiles = [];
+      // TODO make sure all files exist
+      // console.log()
 
-      for ( var name of filenames ) {
-        if (fs.existsSync(name)) {
-          existedFiles.push(name)
-        } else {
-          debug("file doesn't exist", name)
-        }
-      }
-
-      const sources = R.map(name => fs.readFileSync(name, 'utf8'))(existedFiles)
+      const sources = R.map(name => fs.readFileSync(name, 'utf8'))(filenames)
       const names = R.map(filename => {
         return path.relative(packageJsonFolder, filename)
       })(filenames)
@@ -159,16 +155,34 @@ function nowApi () {
       const params = R.zipObj(names, sources)
       // parsed JSON object
       params.package = JSON.parse(params['package.json'])
-      delete params['package.json']
 
       // we do not need dev dependencies in the deployed server
       delete params.package.devDependencies
 
+      // KQ START
+      params.public = false
+      params.files = []
+      params.name= params.package.name
+      params.deploymentType = "NPM"
+
+      const crypto = require('crypto')
+
+      filenames.forEach((file, i) => {
+        params.files.push({
+          file: file,
+          sha: crypto.createHash('sha1').update(sources[i]).digest('hex'),
+          size: sources[i].length,
+          data: sources[i]
+        })
+      })
+      // KQ END
+
       return now.createDeployment(params)
         .then(r => {
+
           // TODO make an option
           const maxWaitSeconds = 60 * 10
-          return waitUntilDeploymentReady(r.uid, maxWaitSeconds)
+          return waitUntilDeploymentReady(r.deploymentId, maxWaitSeconds)
         })
         .catch(r => {
           if (is.error(r)) {
@@ -176,9 +190,10 @@ function nowApi () {
             console.error(r.message)
             return Promise.reject(r)
           }
-          // console.error('error')
-          // console.error(r)
-          return Promise.reject(new Error(r))
+          console.error('error')
+          console.error(r)
+          // console.error(r.response.data)
+          return Promise.reject(new Error(r.response.data.err.message))
         })
     }
   }
