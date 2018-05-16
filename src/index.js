@@ -8,7 +8,7 @@ const path = require('path')
 const fs = require('fs')
 const is = require('check-more-types')
 const la = require('lazy-ass')
-const Now = require('now-client')
+const Now = require('@botmatic/now-client')
 const combineDeploysAndAliases = require('./deploys-with-aliases')
 const moment = require('moment')
 
